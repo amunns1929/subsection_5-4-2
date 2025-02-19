@@ -1,131 +1,60 @@
 //=====[Libraries]=============================================================
 
+#include "display.h"
+#include "ignition.h"
 #include "mbed.h"
 #include "arm_book_lib.h"
-
+#include "select_time_delay.h"
 #include "user_interface.h"
-
-#include "code.h"
-#include "siren.h"
-#include "smart_home_system.h"
-#include "date_and_time.h"
-#include "temperature_sensor.h"
-#include "gas_sensor.h"
-#include "matrix_keypad.h"
+#include "wipers.h"
 
 //=====[Declaration of private defines]========================================
 
-//=====[Declaration of private data types]=====================================
+#define INT_3_DELAY_MS 3000 //3 second delay
+#define INT_6_DELAY_MS 6000 //6 second delay
+#define INT_8_DELAY_MS 8000 //8 second delay
 
-//=====[Declaration and initialization of public global objects]===============
 
-DigitalOut incorrectCodeLed(LED3);
-DigitalOut systemBlockedLed(LED2);
-
-//=====[Declaration of external public global variables]=======================
-
-//=====[Declaration and initialization of public global variables]=============
-
-char codeSequenceFromUserInterface[CODE_NUMBER_OF_KEYS];
-
-//=====[Declaration and initialization of private global variables]============
-
-static bool incorrectCodeState = OFF;
-static bool systemBlockedState = OFF;
-
-static bool codeComplete = false;
-static int numberOfCodeChars = 0;
-
-//=====[Declarations (prototypes) of private functions]========================
-
-static void userInterfaceMatrixKeypadUpdate();
-static void incorrectCodeIndicatorUpdate();
-static void systemBlockedIndicatorUpdate();
-
-//=====[Implementations of public functions]===================================
-
-void userInterfaceInit()
+ //=====[Implementations of public functions]===================================
+ void userInterfaceDisplayInit()
 {
-    incorrectCodeLed = OFF;
-    systemBlockedLed = OFF;
-    matrixKeypadInit( SYSTEM_TIME_INCREMENT_MS );
+    displayInit();
+    displayCharPositionWrite ( 0,0 );
+    displayStringWrite( "Mode:" );
+
 }
 
-void userInterfaceUpdate()
+void userInterfaceDisplayUpdate()
 {
-    userInterfaceMatrixKeypadUpdate();
-    incorrectCodeIndicatorUpdate();
-    systemBlockedIndicatorUpdate();
-}
-
-bool incorrectCodeStateRead()
-{
-    return incorrectCodeState;
-}
-
-void incorrectCodeStateWrite( bool state )
-{
-    incorrectCodeState = state;
-}
-
-bool systemBlockedStateRead()
-{
-    return systemBlockedState;
-}
-
-void systemBlockedStateWrite( bool state )
-{
-    systemBlockedState = state;
-}
-
-bool userInterfaceCodeCompleteRead()
-{
-    return codeComplete;
-}
-
-void userInterfaceCodeCompleteWrite( bool state )
-{
-    codeComplete = state;
-}
-
-//=====[Implementations of private functions]==================================
-
-static void userInterfaceMatrixKeypadUpdate()
-{
-    static int numberOfHashKeyReleased = 0;
-    char keyReleased = matrixKeypadUpdate();
-
-    if( keyReleased != '\0' ) {
-
-        if( sirenStateRead() && !systemBlockedStateRead() ) {
-            if( !incorrectCodeStateRead() ) {
-                codeSequenceFromUserInterface[numberOfCodeChars] = keyReleased;
-                numberOfCodeChars++;
-                if ( numberOfCodeChars >= CODE_NUMBER_OF_KEYS ) {
-                    codeComplete = true;
-                    numberOfCodeChars = 0;
-                }
-            } else {
-                if( keyReleased == '#' ) {
-                    numberOfHashKeyReleased++;
-                    if( numberOfHashKeyReleased >= 2 ) {
-                        numberOfHashKeyReleased = 0;
-                        numberOfCodeChars = 0;
-                        codeComplete = false;
-                        incorrectCodeState = OFF;
-                    }
-                }
-            }
+    if (wiperState == WIPER_STATE_OFF) {
+        displayCharPositionWrite ( 5,0 );
+        displayStringWrite( "OFF ");
+    }
+    if (wiperState == WIPER_STATE_LO) {
+        displayCharPositionWrite ( 5,0 );
+        displayStringWrite( "LO ");
+    }
+    if (wiperState == WIPER_STATE_HI) {
+        displayCharPositionWrite ( 5,0 );
+        displayStringWrite( "HI ");
+    }
+    if (wiperState == WIPER_STATE_INT) {
+        displayCharPositionWrite ( 5,0 );
+        displayStringWrite( "INT ");
+        displayCharPositionWrite ( 0,1 );
+        displayStringWrite( "Delay Time:     ");
+        if (SELECTED_TIME_DELAY == INT_3_DELAY_MS){
+            displayCharPositionWrite ( 11,1 );
+            displayStringWrite( "SHORT");
+        }
+        if (SELECTED_TIME_DELAY == INT_6_DELAY_MS){
+            displayCharPositionWrite ( 11,1 );
+            displayStringWrite( "MED.");
+        }
+        if (SELECTED_TIME_DELAY == INT_8_DELAY_MS){
+            displayCharPositionWrite ( 11,1 );
+            displayStringWrite( "LONG");
         }
     }
-}
 
-static void incorrectCodeIndicatorUpdate()
-{
-    incorrectCodeLed = incorrectCodeStateRead();
-}
-
-static void systemBlockedIndicatorUpdate()
-{
-    systemBlockedLed = systemBlockedState;
 }

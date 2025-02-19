@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _DATE_AND_TIME_H_
-#define _DATE_AND_TIME_H_
+#ifndef _DISPLAY_H_
+#define _DISPLAY_H_
 
 //=====[Declaration of public defines]=========================================
 
@@ -9,11 +9,13 @@
 
 //=====[Declarations (prototypes) of public functions]=========================
 
-char* dateAndTimeRead();
+#include <cstdint>
+void displayInit( void );
+ 
+void displayCharPositionWrite( uint8_t charPositionX, uint8_t charPositionY );
 
-void dateAndTimeWrite( int year, int month, int day, 
-                       int hour, int minute, int second );
+void displayStringWrite( const char * str );
 
 //=====[#include guards - end]=================================================
 
-#endif // _DATE_AND_TIME_H_
+#endif // _DISPLAY_H_
